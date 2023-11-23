@@ -21,7 +21,7 @@ const ContentWrap = styled.div`
     border: 5px solid #fff;
     border-radius: 8px;
     outline: 3px solid #ffd300;
-    min-height: 90vh;
+    min-height: 70vh;
 `;
 
 const StyledTable = styled.table`
@@ -60,21 +60,43 @@ const Button = styled.button`
     text-transform: uppercase;
     font-weight: bold;
 `;
+
 const Table = () => {
     const [data, setData] = useState<Array<DataInterface>>([]);
     const [clickedValue, setClickedValue] = useState<SortTypes | ''>('');
     const [filteredData, setFilteredData] = useState<DataInterface[]>([]);
     const [rowDetails, setRowDetails] = useState<DataInterface | null>(null);
+    const [doubleClickValue, setDoubleClickValue] = useState<SortTypes | ''>(
+        '',
+    );
 
     useEffect(() => {
         axios.get(url).then((response) => setData(response.data));
     }, []);
 
-    const sortHandle = (type: SortTypes) => {
-        const isDoubleClicked = clickedValue === type;
-        setClickedValue(isDoubleClicked ? '' : type);
-        const sortedList = getSortedColl([...data], !isDoubleClicked, type);
-        setData(sortedList);
+    const handleClick = (type: SortTypes) => {
+        if (clickedValue === type) {
+            setClickedValue('');
+            setDoubleClickValue(type);
+        }
+        if (clickedValue !== type) {
+            setClickedValue(type);
+            setDoubleClickValue('');
+        }
+
+        const isReverse = clickedValue === type;
+
+        if (filteredData.length > 0) {
+            const sortedList = getSortedColl(
+                [...filteredData],
+                !isReverse,
+                type,
+            );
+            setFilteredData(sortedList);
+        } else {
+            const sortedList = getSortedColl([...data], !isReverse, type);
+            setData(sortedList);
+        }
     };
 
     const filterHandle = (value: string) => {
@@ -86,6 +108,13 @@ const Table = () => {
         setRowDetails(item);
     };
 
+    const renderSortLogo = (type: SortTypes) => {
+        if (clickedValue === type || doubleClickValue === type) {
+            return doubleClickValue !== type ? ' ↓' : ' ↑';
+        }
+        return null;
+    };
+
     const renderedData = filteredData.length > 0 ? filteredData : data;
 
     return (
@@ -95,26 +124,33 @@ const Table = () => {
                 <THead>
                     <Tr>
                         <Th>
-                            <Button onClick={() => sortHandle('id')}>id</Button>
+                            <Button onClick={() => handleClick('id')}>
+                                id
+                                {renderSortLogo('id')}
+                            </Button>
                         </Th>
                         <Th>
-                            <Button onClick={() => sortHandle('firstName')}>
+                            <Button onClick={() => handleClick('firstName')}>
                                 firstName
+                                {renderSortLogo('firstName')}
                             </Button>
                         </Th>
                         <Th>
-                            <Button onClick={() => sortHandle('lastName')}>
+                            <Button onClick={() => handleClick('lastName')}>
                                 lastName
+                                {renderSortLogo('lastName')}
                             </Button>
                         </Th>
                         <Th>
-                            <Button onClick={() => sortHandle('email')}>
+                            <Button onClick={() => handleClick('email')}>
                                 email
+                                {renderSortLogo('email')}
                             </Button>
                         </Th>
                         <Th>
-                            <Button onClick={() => sortHandle('phone')}>
+                            <Button onClick={() => handleClick('phone')}>
                                 phone
+                                {renderSortLogo('phone')}
                             </Button>
                         </Th>
                     </Tr>
